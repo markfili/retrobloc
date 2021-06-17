@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import 'network/api_client.dart';
 
@@ -46,6 +47,13 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     var dio = Dio();
+    dio.interceptors.add(PrettyDioLogger(
+      requestHeader: true,
+      requestBody: true,
+      responseBody: true,
+      responseHeader: false,
+      compact: false,
+    ));
     _apiClient = ApiClient(dio);
     _reloadArticles();
   }

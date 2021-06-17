@@ -7,6 +7,7 @@ From Bloc to network and back.
 - Equatable
 - Flutter bloc with context.watch/select/read
 - Logger
+- Pretty Dio Logger (interceptor)
 - Another Flushbar (wacky Snackbar)
 
 After adding a new class annotated with `@JsonSerializable` run:
