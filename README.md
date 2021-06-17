@@ -2,6 +2,12 @@
 
 From Bloc to network and back.
 
+- Retrofit
+- JSON serialization
+- Flutter bloc with context.watch/select/read
+- Logger
+
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
