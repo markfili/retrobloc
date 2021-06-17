@@ -59,7 +59,9 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _reloadArticles() async {
-    _articles = _apiClient.getArticles();
+    setState(() {
+      _articles = _apiClient.getArticles();
+    });
   }
 
   @override
