@@ -2,6 +2,9 @@
 
 From Bloc to network and back.
 
+# Contains
+
+- Flutter Bloc
 - Retrofit
 - JSON serialization
 - Equatable
@@ -9,6 +12,14 @@ From Bloc to network and back.
 - Logger
 - Pretty Dio Logger (interceptor)
 - Another Flushbar (wacky Snackbar)
+- Refresh indicator
+
+# TODO
+
+- dependency injection
+- project structure
+
+# Note
 
 After adding a new class annotated with `@JsonSerializable` run:
 ```

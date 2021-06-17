@@ -3,9 +3,11 @@ import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
+import 'blocs/articles/articles_bloc.dart';
 import 'models/article.dart';
 import 'network/api_client.dart';
 
@@ -42,7 +44,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final logger = Logger();
   late final ApiClient _apiClient;
-  late Future<List<Article>> _articles;
 
   @override
   void initState() {
@@ -56,13 +57,6 @@ class _MyHomePageState extends State<MyHomePage> {
       compact: false,
     ));
     _apiClient = ApiClient(dio);
-    _reloadArticles();
-  }
-
-  Future<void> _reloadArticles() async {
-    setState(() {
-      _articles = _apiClient.getArticles();
-    });
   }
 
   @override
@@ -71,45 +65,50 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: RefreshIndicator(
-        onRefresh: _reloadArticles,
-        child: Center(
-          child: FutureBuilder<List<Article>>(
-            future: _articles,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.active ||
-                  snapshot.connectionState == ConnectionState.waiting) {
-                return LinearProgressIndicator(
-                  minHeight: 10,
-                );
-              }
-              if (snapshot.hasError) {
-                return Text(snapshot.error.toString());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Text("It seems you won't be reading articles today!");
-              }
-              var articles = snapshot.data!;
-              logger.i("Received ${articles.length} articles!");
-              return ListView.builder(
-                itemCount: articles.length,
-                itemBuilder: (context, index) {
-                  var article = articles[index];
-                  return ListTile(
-                    leading: CircleAvatar(
-                      foregroundImage: NetworkImage(article.image),
-                    ),
-                    title: Text(article.title),
-                    subtitle: Text("${article.createdAt} * ${article.author}"),
-                    onTap: () => _showSnackBar(article, context),
-                  );
-                },
-              );
-            },
-          ),
+      body: BlocProvider<ArticlesBloc>(
+        create: (context) => ArticlesBloc(client: _apiClient)..add(LoadArticles()),
+        child: Builder(
+          builder: (context) {
+            return RefreshIndicator(
+              onRefresh: () => _reloadArticles(context),
+              child: Center(
+                child: BlocBuilder<ArticlesBloc, ArticlesState>(
+                  builder: (context, state) {
+                    if (state is ArticlesLoading) {
+                      return LinearProgressIndicator(minHeight: 10);
+                    }
+                    if (state is ArticlesFailure) {
+                      return Text("It seems you won't be reading articles today!");
+                    }
+                    if (state is ArticlesSuccess) {
+                      var articles = state.articles;
+                      logger.i("Received ${articles.length} articles!");
+                      return ListView.builder(
+                        itemCount: articles.length,
+                        itemBuilder: (context, index) {
+                          var article = articles[index];
+                          return ListTile(
+                            leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
+                            title: Text(article.title),
+                            subtitle: Text("${article.createdAt} * ${article.author}"),
+                            onTap: () => _showSnackBar(article, context),
+                          );
+                        },
+                      );
+                    }
+                    return Container();
+                  },
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
+  }
+
+  Future<void> _reloadArticles(BuildContext context) async {
+    context.read<ArticlesBloc>().add(LoadArticles());
   }
 
   void _showSnackBar(Article article, BuildContext context) {
