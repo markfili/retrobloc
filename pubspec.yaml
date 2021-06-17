@@ -23,11 +23,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  another_flushbar: ^1.10.23
   flutter_bloc: ^7.0.1
   equatable: ^2.0.3
+  dio: ^4.0.0
   retrofit: ^2.0.0
   logger: ^1.0.0
-  json_serializable: ^4.1.3
+  json_annotation: ^4.0.1
   cupertino_icons: ^1.0.3
 
 dev_dependencies:
@@ -35,6 +37,7 @@ dev_dependencies:
     sdk: flutter
   retrofit_generator: ^2.0.0+1
   build_runner: ^2.0.4
+  json_serializable: ^4.1.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
