@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
-import 'api_client.dart';
+import 'network/api_client.dart';
 
 void main() {
   /// This value defaults to true in debug mode and false in release mode.
