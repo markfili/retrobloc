@@ -4,6 +4,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:logger/logger.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
@@ -75,7 +76,8 @@ class _MyHomePageState extends State<MyHomePage> {
           create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>())..add(LoadArticles()),
           child: Builder(
             builder: (context) {
-              return RefreshIndicator(
+              return LiquidPullToRefresh(
+                showChildOpacityTransition: false,
                 onRefresh: () => _reloadArticles(context),
                 child: Center(
                   child: BlocBuilder<ArticlesBloc, ArticlesState>(

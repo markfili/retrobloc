@@ -30,6 +30,7 @@ dependencies:
   retrofit: ^2.0.0
   logger: ^1.0.0
   json_annotation: ^4.0.1
+  liquid_pull_to_refresh: ^3.0.0
   cupertino_icons: ^1.0.3
   pretty_dio_logger: ^1.1.1
 
