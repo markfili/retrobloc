@@ -12,6 +12,7 @@ class ApiResult<T> {
 /// Wraps common exceptions that should be handled by business logic.
 ///
 /// TODO: add callback to properly handle custom errors found in a successful API response (DioErrorType.response)
+/// Follow this example to extend error handling: https://dev.to/ashishrawat2911/handling-network-calls-and-exceptions-in-flutter-54me
 class ApiError {
   late final dynamic error;
 
