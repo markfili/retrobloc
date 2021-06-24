@@ -21,4 +21,11 @@ class ArticlesSuccess extends ArticlesState {
   List<Object?> get props => [articles];
 }
 
-class ArticlesFailure extends ArticlesState {}
+class ArticlesFailure extends ArticlesState {
+  final String? errorMessage;
+
+  ArticlesFailure({this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}

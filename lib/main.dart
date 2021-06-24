@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:logger/logger.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
 
 import 'blocs/articles/articles_bloc.dart';
 import 'models/article.dart';
@@ -56,6 +57,9 @@ class _MyHomePageState extends State<MyHomePage> {
       responseHeader: false,
       compact: false,
     ));
+    // play with timeout values to simulate TimeoutException
+    //    dio.options.connectTimeout = 10;
+    //    dio.options.receiveTimeout = 10;
     _apiClient = ApiClient(dio);
   }
 
@@ -65,43 +69,47 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: BlocProvider<ArticlesBloc>(
-        create: (context) => ArticlesBloc(client: _apiClient)..add(LoadArticles()),
-        child: Builder(
-          builder: (context) {
-            return RefreshIndicator(
-              onRefresh: () => _reloadArticles(context),
-              child: Center(
-                child: BlocBuilder<ArticlesBloc, ArticlesState>(
-                  builder: (context, state) {
-                    if (state is ArticlesLoading) {
-                      return LinearProgressIndicator(minHeight: 10);
-                    }
-                    if (state is ArticlesFailure) {
-                      return Text("It seems you won't be reading articles today!");
-                    }
-                    if (state is ArticlesSuccess) {
-                      var articles = state.articles;
-                      logger.i("Received ${articles.length} articles!");
-                      return ListView.builder(
-                        itemCount: articles.length,
-                        itemBuilder: (context, index) {
-                          var article = articles[index];
-                          return ListTile(
-                            leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
-                            title: Text(article.title),
-                            subtitle: Text("${article.createdAt} * ${article.author}"),
-                            onTap: () => _showSnackBar(article, context),
-                          );
-                        },
-                      );
-                    }
-                    return Container();
-                  },
+      body: RepositoryProvider<ArticlesRepository>(
+        create: (_) => ArticlesRepository(client: _apiClient),
+        child: BlocProvider<ArticlesBloc>(
+          create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>())..add(LoadArticles()),
+          child: Builder(
+            builder: (context) {
+              return RefreshIndicator(
+                onRefresh: () => _reloadArticles(context),
+                child: Center(
+                  child: BlocBuilder<ArticlesBloc, ArticlesState>(
+                    builder: (context, state) {
+                      if (state is ArticlesLoading) {
+                        return LinearProgressIndicator(minHeight: 10);
+                      }
+                      if (state is ArticlesFailure) {
+                        // custom messages and/or actions to failed state
+                        return Text(state.errorMessage ?? "It seems you won't be reading articles today!");
+                      }
+                      if (state is ArticlesSuccess) {
+                        var articles = state.articles;
+                        logger.i("Received ${articles.length} articles!");
+                        return ListView.builder(
+                          itemCount: articles.length,
+                          itemBuilder: (context, index) {
+                            var article = articles[index];
+                            return ListTile(
+                              leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
+                              title: Text(article.title),
+                              subtitle: Text("${article.createdAt} * ${article.author}"),
+                              onTap: () => _showSnackBar(article, context),
+                            );
+                          },
+                        );
+                      }
+                      return Container();
+                    },
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
