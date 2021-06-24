@@ -79,35 +79,45 @@ class _MyHomePageState extends State<MyHomePage> {
               return LiquidPullToRefresh(
                 showChildOpacityTransition: false,
                 onRefresh: () => _reloadArticles(context),
-                child: Center(
-                  child: BlocBuilder<ArticlesBloc, ArticlesState>(
-                    builder: (context, state) {
-                      if (state is ArticlesLoading) {
-                        return LinearProgressIndicator(minHeight: 10);
-                      }
-                      if (state is ArticlesFailure) {
-                        // custom messages and/or actions to failed state
-                        return Text(state.errorMessage ?? "It seems you won't be reading articles today!");
-                      }
-                      if (state is ArticlesSuccess) {
-                        var articles = state.articles;
-                        logger.i("Received ${articles.length} articles!");
-                        return ListView.builder(
-                          itemCount: articles.length,
-                          itemBuilder: (context, index) {
-                            var article = articles[index];
-                            return ListTile(
-                              leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
-                              title: Text(article.title),
-                              subtitle: Text("${article.createdAt} * ${article.author}"),
-                              onTap: () => _showSnackBar(article, context),
-                            );
-                          },
-                        );
-                      }
-                      return Container();
-                    },
-                  ),
+                child: BlocBuilder<ArticlesBloc, ArticlesState>(
+                  builder: (context, state) {
+                    if (state is ArticlesLoading) {
+                      return Center(child: LinearProgressIndicator(minHeight: 10));
+                    }
+                    if (state is ArticlesFailure) {
+                      // custom messages and/or actions to failed state
+                      return CustomScrollView(
+                        slivers: [
+                          SliverFillRemaining(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(state.errorMessage ?? "It seems you won't be reading any articles today!"),
+                              ],
+                            ),
+                          )
+                        ],
+                      );
+                    }
+                    if (state is ArticlesSuccess) {
+                      var articles = state.articles;
+                      logger.i("Received ${articles.length} articles!");
+                      return ListView.builder(
+                        itemCount: articles.length,
+                        itemBuilder: (context, index) {
+                          var article = articles[index];
+                          return ListTile(
+                            leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
+                            title: Text(article.title),
+                            subtitle: Text("${article.createdAt} * ${article.author}"),
+                            onTap: () => _showSnackBar(article, context),
+                          );
+                        },
+                      );
+                    }
+                    return Container();
+                  },
                 ),
               );
             },
