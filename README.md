@@ -4,28 +4,26 @@ From Bloc to network and back.
 
 # Contains
 
-- Flutter Bloc
+- Flutter Bloc with context.watch/select/read
 - Retrofit
 - JSON serialization
 - Equatable
-- Flutter bloc with context.watch/select/read
-- Logger
-- Pretty Dio Logger (interceptor)
+- Logger (a pretty one)
+- Pretty Dio Logger (pretty logger interceptor)
 - Another Flushbar (wacky Snackbar)
-- Refresh indicator
 - API Error handling
 - Liquid Pull to refresh
-
-# TODO
-
-- dependency injection
-- project structure
+- Dependency Injection (get_it, injectable)
 
 # Notes
 
-After adding a new class annotated with `@JsonSerializable` run:
+If you want the generator to run one time and exits use
 ```
     flutter pub run build_runner build
+```
+Use the [watch] flag to watch the files' system for edits and rebuild as necessary.
+```
+    flutter packages pub run build_runner watch  
 ```
 
 API Error handling inspired by:

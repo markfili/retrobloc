@@ -7,9 +7,7 @@ part of 'api_client.dart';
 // **************************************************************************
 
 class _ApiClient implements ApiClient {
-  _ApiClient(this._dio, {this.baseUrl}) {
-    baseUrl ??= 'https://60cb5abe21337e0017e448a4.mockapi.io';
-  }
+  _ApiClient(this._dio, {this.baseUrl});
 
   final Dio _dio;
 

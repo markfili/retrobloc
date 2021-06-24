@@ -1,23 +1,21 @@
 import 'package:another_flushbar/flushbar.dart';
-import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:logger/logger.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
 
 import 'blocs/articles/articles_bloc.dart';
+import 'di/injector.dart';
 import 'models/article.dart';
-import 'network/api_client.dart';
 
 void main() {
   /// This value defaults to true in debug mode and false in release mode.
   /// Seems it's not necessary to set it unless wanted in release mode
   EquatableConfig.stringify = kDebugMode;
-
+  configureDependencies();
   runApp(MyApp());
 }
 
@@ -44,26 +42,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final logger = Logger();
-  late final ApiClient _apiClient;
-
-  @override
-  void initState() {
-    super.initState();
-    var dio = Dio();
-    dio.interceptors.add(PrettyDioLogger(
-      requestHeader: true,
-      requestBody: true,
-      responseBody: true,
-      responseHeader: false,
-      compact: false,
-    ));
-    // play with timeout values to simulate TimeoutException
-    //    dio.options.connectTimeout = 10;
-    //    dio.options.receiveTimeout = 10;
-    _apiClient = ApiClient(dio);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,9 +49,9 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: RepositoryProvider<ArticlesRepository>(
-        create: (_) => ArticlesRepository(client: _apiClient),
+        create: (_) => GetIt.instance.get<ArticlesRepository>(),
         child: BlocProvider<ArticlesBloc>(
-          create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>())..add(LoadArticles()),
+          create: (context) => GetIt.instance.get<ArticlesBloc>()..add(LoadArticles()),
           child: Builder(
             builder: (context) {
               return LiquidPullToRefresh(
@@ -83,7 +61,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   builder: (context, state) {
                     return state.when(
                         success: (articles) {
-                          logger.i("Received ${articles.length} articles!");
                           return ListView.builder(
                             itemCount: articles.length,
                             itemBuilder: (context, index) {
