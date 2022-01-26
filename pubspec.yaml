@@ -23,7 +23,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  another_flushbar: ^1.10.28
   flutter_bloc: ^8.0.1
   equatable: ^2.0.3
   dio: ^4.0.4

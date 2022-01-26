@@ -7,11 +7,10 @@ import 'package:retrobloc/network/api_client.dart';
 
 import '../../api_result.dart';
 
-@injectable
 class ArticlesRepository {
-  late final ApiClient client;
+  final ApiClient client;
 
-  ArticlesRepository(this.client);
+  ArticlesRepository({required this.client});
 
   Future<ApiResult<List<Article>>> getArticles() async {
     try {

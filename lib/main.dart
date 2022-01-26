@@ -1,11 +1,11 @@
-import 'package:another_flushbar/flushbar.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:get_it/get_it.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:retrobloc/network/api_client.dart';
 import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
+import 'package:retrobloc/utils/logging.dart';
 
 import 'blocs/articles/articles_bloc.dart';
 import 'di/injector.dart';
@@ -16,7 +16,18 @@ void main() {
   /// Seems it's not necessary to set it unless wanted in release mode
   EquatableConfig.stringify = kDebugMode;
   configureDependencies();
-  runApp(MyApp());
+  BlocOverrides.runZoned(
+    () => runApp(MyApp()),
+    blocObserver: SimpleBlocObserver(),
+  );
+}
+
+class SimpleBlocObserver extends BlocObserver {
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    super.onTransition(bloc, transition);
+    logger.i("$bloc $transition");
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -27,7 +38,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Network Demo'),
+      home: RepositoryProvider<ArticlesRepository>(
+        create: (_) => ArticlesRepository(client: getIt.get<ApiClient>()),
+        child: BlocProvider<ArticlesBloc>(
+          create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>())..add(LoadArticles()),
+          child: MyHomePage(title: 'Flutter Network Demo'),
+        ),
+      ),
     );
   }
 }
@@ -48,98 +65,85 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: RepositoryProvider<ArticlesRepository>(
-        create: (_) => GetIt.instance.get<ArticlesRepository>(),
-        child: BlocProvider<ArticlesBloc>(
-          create: (context) => GetIt.instance.get<ArticlesBloc>()..add(LoadArticles()),
-          child: Builder(
-            builder: (context) {
-              return LiquidPullToRefresh(
-                showChildOpacityTransition: false,
-                onRefresh: () => _reloadArticles(context),
-                child: BlocBuilder<ArticlesBloc, ArticlesState>(
-                  builder: (context, state) {
-                    return state.when(
-                        success: (articles) {
-                          return ListView.builder(
-                            itemCount: articles.length,
-                            itemBuilder: (context, index) {
-                              var article = articles[index];
-                              return ListTile(
-                                leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
-                                title: Text(article.title),
-                                subtitle: Text("${article.createdAt} * ${article.author}"),
-                                onTap: () => _showSnackBar(article, context),
+      body: Builder(
+        builder: (context) {
+          return LiquidPullToRefresh(
+            showChildOpacityTransition: false,
+            onRefresh: _reloadArticles,
+            child: BlocBuilder<ArticlesBloc, ArticlesState>(
+              builder: (context, state) {
+                return state.when(
+                    success: (articles) {
+                      return ListView.builder(
+                        itemCount: articles.length,
+                        itemBuilder: (context, index) {
+                          var article = articles[index];
+                          return ListTile(
+                            leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
+                            title: Text(article.title),
+                            subtitle: Text("${article.createdAt} * ${article.author}"),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ArticleScreen(
+                                    article: article,
+                                  ),
+                                ),
                               );
                             },
                           );
                         },
-                        error: (errorMessage) {
-                          return CustomScrollView(
-                            slivers: [
-                              SliverFillRemaining(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(errorMessage ?? "It seems you won't be reading any articles today!"),
-                                  ],
-                                ),
-                              )
-                            ],
-                          );
-                        },
-                        loading: () => Center(child: LinearProgressIndicator(minHeight: 10)));
-                  },
-                ),
-              );
-            },
-          ),
-        ),
+                      );
+                    },
+                    error: (errorMessage) {
+                      return CustomScrollView(
+                        slivers: [
+                          SliverFillRemaining(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.max,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(errorMessage ?? "It seems you won't be reading any articles today!"),
+                              ],
+                            ),
+                          )
+                        ],
+                      );
+                    },
+                    loading: () => Center(child: LinearProgressIndicator(minHeight: 10)));
+              },
+            ),
+          );
+        },
       ),
     );
   }
 
-  Future<void> _reloadArticles(BuildContext context) async {
-    context.read<ArticlesBloc>().add(LoadArticles());
+  Future<void> _reloadArticles() async {
+    var articlesBloc = context.read<ArticlesBloc>();
+    articlesBloc.add(RefreshArticles());
+    await articlesBloc.stream.first;
   }
+}
 
-  void _showSnackBar(Article article, BuildContext context) {
-    Flushbar(
-      title: "Hey Ninja",
-      titleColor: Colors.white,
-      message: "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
-      flushbarPosition: FlushbarPosition.BOTTOM,
-      flushbarStyle: FlushbarStyle.FLOATING,
-      reverseAnimationCurve: Curves.decelerate,
-      forwardAnimationCurve: Curves.elasticOut,
-      backgroundColor: Colors.red,
-      boxShadows: [BoxShadow(color: Colors.blue, offset: Offset(0.0, 2.0), blurRadius: 3.0)],
-      backgroundGradient: LinearGradient(colors: [Colors.blueGrey, Colors.black]),
-      isDismissible: false,
-      duration: Duration(seconds: 4),
-      icon: Icon(
-        Icons.check,
-        color: Colors.greenAccent,
+class ArticleScreen extends StatelessWidget {
+  final Article article;
+
+  const ArticleScreen({required this.article});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(article.title),
       ),
-      mainButton: TextButton(
-        onPressed: () {},
-        child: Text(
-          "CLAP",
-          style: TextStyle(color: Colors.amber),
-        ),
+      body: Column(
+        children: [
+          Image.network(article.image),
+          Text(article.author),
+          Text(article.createdAt),
+        ],
       ),
-      showProgressIndicator: true,
-      progressIndicatorBackgroundColor: Colors.blueGrey,
-      titleText: Text(
-        "${article.title}, ID: ${article.id}",
-        style: TextStyle(
-            fontWeight: FontWeight.bold, fontSize: 20.0, color: Colors.yellow[600], fontFamily: "ShadowsIntoLightTwo"),
-      ),
-      messageText: Text(
-        "Usually this would show the article's content, but right now it's just a wacky Snackbar!",
-        style: TextStyle(fontSize: 18.0, color: Colors.green, fontFamily: "ShadowsIntoLightTwo"),
-      ),
-    )..show(context);
+    );
   }
 }

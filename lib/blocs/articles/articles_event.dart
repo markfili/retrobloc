@@ -7,3 +7,5 @@ abstract class ArticlesEvent extends Equatable {
 }
 
 class LoadArticles extends ArticlesEvent {}
+
+class RefreshArticles extends ArticlesEvent {}
