@@ -35,6 +35,18 @@ class ApiError {
             }
             return "Unknown error occurred, we're trying to fix it!";
           case DioErrorType.response:
+            switch (error.response.statusCode) {
+              case 400:
+              case 401:
+              case 403:
+                return "Unauthorised request. Probably need to login?";
+                break;
+              case 404:
+                return "We cannot found what you're looking for.";
+              case 503:
+                return "Our server is currently not feeling well.";
+              default:
+            }
             return "Here I would say what's wrong with your request, ex 403, 404, item already exists...";
         }
       }
