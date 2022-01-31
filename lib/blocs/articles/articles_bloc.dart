@@ -1,15 +1,17 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 import 'package:retrobloc/models/article.dart';
 import 'package:retrobloc/network/api_result.dart';
 import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
 import 'package:retrobloc/utils/logging.dart';
 
+part 'articles_bloc.g.dart';
 part 'articles_event.dart';
 part 'articles_state.dart';
 
-class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
+class ArticlesBloc extends HydratedBloc<ArticlesEvent, ArticlesState> {
   final ArticlesRepository repository;
 
   ArticlesBloc({required this.repository}) : super(ArticlesLoading()) {
@@ -37,5 +39,29 @@ class ArticlesBloc extends Bloc<ArticlesEvent, ArticlesState> {
     } on ApiError catch (_) {
       emit(state);
     }
+  }
+
+  @override
+  ArticlesState? fromJson(Map<String, dynamic> json) {
+    logger.i("Reading state from storage");
+    logger.i(json);
+    if (json["state"] == "success") {
+      return ArticlesSuccess(articles: (json["articles"] as List).map((e) => Article.fromJson(e)).toList());
+    }
+    if (json["state"] == "failure") {
+      return ArticlesFailure(errorMessage: json["message"] as String);
+    }
+    return ArticlesLoading();
+  }
+
+  @override
+  Map<String, dynamic>? toJson(ArticlesState state) {
+    if (state is ArticlesSuccess) {
+      return {"state": "success", "articles": state.articles.map((e) => e.toJson()).toList()};
+    }
+    if (state is ArticlesFailure) {
+      return {"state": "failure", "message": state.errorMessage};
+    }
+    return {"state": "loading"};
   }
 }

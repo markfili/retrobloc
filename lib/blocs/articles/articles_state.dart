@@ -10,8 +10,10 @@ abstract class ArticlesState extends Equatable with SealedArticlesStates {
 
 class InitialArticlesState extends ArticlesState {}
 
+@JsonSerializable()
 class ArticlesLoading extends ArticlesState {}
 
+@JsonSerializable()
 class ArticlesSuccess extends ArticlesState {
   final List<Article> articles;
 
@@ -21,6 +23,7 @@ class ArticlesSuccess extends ArticlesState {
   List<Object?> get props => [articles];
 }
 
+@JsonSerializable()
 class ArticlesFailure extends ArticlesState {
   final String? errorMessage;
 
