@@ -130,7 +130,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _reloadArticles() async {
     var articlesBloc = context.read<ArticlesBloc>();
     articlesBloc.add(RefreshArticles());
-    await articlesBloc.stream.first;
+    await articlesBloc.stream.firstWhere((element) => !(element is ArticlesRefreshing));
   }
 }
 

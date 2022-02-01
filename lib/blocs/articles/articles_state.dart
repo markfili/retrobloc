@@ -10,10 +10,17 @@ abstract class ArticlesState extends Equatable with SealedArticlesStates {
 
 class InitialArticlesState extends ArticlesState {}
 
-@JsonSerializable()
 class ArticlesLoading extends ArticlesState {}
 
-@JsonSerializable()
+class ArticlesRefreshing extends ArticlesState {
+  final List<Article> articles;
+
+  const ArticlesRefreshing({required this.articles});
+
+  @override
+  List<Object?> get props => [articles];
+}
+
 class ArticlesSuccess extends ArticlesState {
   final List<Article> articles;
 
@@ -23,7 +30,6 @@ class ArticlesSuccess extends ArticlesState {
   List<Object?> get props => [articles];
 }
 
-@JsonSerializable()
 class ArticlesFailure extends ArticlesState {
   final String? errorMessage;
 
@@ -50,6 +56,9 @@ abstract class SealedArticlesStates<T> {
     }
     if (this is InitialArticlesState || this is ArticlesLoading) {
       return loading.call();
+    }
+    if (this is ArticlesRefreshing) {
+      return success.call((this as ArticlesRefreshing).articles);
     }
     throw new Exception('If you got here, there are probably no more states handled in SealedArticlesStates class');
   }
