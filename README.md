@@ -15,6 +15,7 @@ From Bloc to network and back.
 - API Error handling
 - Liquid Pull to refresh
 - Dependency Injection (get_it, injectable)
+- State restoration (restorablePush, restorationScopeId)
 
 # Notes
 
