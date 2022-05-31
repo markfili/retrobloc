@@ -18,31 +18,32 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 2.0.0+1
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
+  sdk: ">=2.12.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  another_flushbar: ^1.10.23
-  flutter_bloc: ^7.0.1
+  flutter_bloc: ^8.0.1
   equatable: ^2.0.3
-  dio: ^4.0.0
-  get_it:
-  injectable:
-  retrofit: ^2.0.0
-  logger: ^1.0.0
-  json_annotation: ^4.0.1
-  liquid_pull_to_refresh: ^3.0.0
-  cupertino_icons: ^1.0.3
+  dio: ^4.0.6
+  get_it: ^7.2.0
+  hydrated_bloc: ^8.1.0
+  injectable: ^1.5.3
+  retrofit: ^3.0.1+1
+  logger: ^1.1.0
+  json_annotation: ^4.5.0
+  liquid_pull_to_refresh: ^3.0.1
+  cupertino_icons: ^1.0.4
+  path_provider: ^2.0.10
   pretty_dio_logger: ^1.1.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  injectable_generator: ^1.4.1
-  retrofit_generator: ^2.0.0+2
-  build_runner: ^2.0.5
-  json_serializable: ^4.1.3
+  injectable_generator: ^1.5.3
+  retrofit_generator: ^4.0.1
+  build_runner: ^2.1.11
+  json_serializable: ^6.2.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -1,17 +1,15 @@
 import 'dart:core';
 
 import 'package:dio/dio.dart';
-import 'package:injectable/injectable.dart';
 import 'package:retrobloc/models/article.dart';
 import 'package:retrobloc/network/api_client.dart';
 
 import '../../api_result.dart';
 
-@injectable
 class ArticlesRepository {
-  late final ApiClient client;
+  final ApiClient client;
 
-  ArticlesRepository(this.client);
+  ArticlesRepository({required this.client});
 
   Future<ApiResult<List<Article>>> getArticles() async {
     try {

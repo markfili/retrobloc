@@ -5,12 +5,13 @@ From Bloc to network and back.
 # Contains
 
 - Flutter Bloc with context.watch/select/read
+- Hydrated Bloc
+- Sealed class for Bloc states
 - Retrofit
 - JSON serialization
 - Equatable
 - Logger (a pretty one)
 - Pretty Dio Logger (pretty logger interceptor)
-- Another Flushbar (wacky Snackbar)
 - API Error handling
 - Liquid Pull to refresh
 - Dependency Injection (get_it, injectable)

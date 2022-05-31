@@ -12,6 +12,15 @@ class InitialArticlesState extends ArticlesState {}
 
 class ArticlesLoading extends ArticlesState {}
 
+class ArticlesRefreshing extends ArticlesState {
+  final List<Article> articles;
+
+  const ArticlesRefreshing({required this.articles});
+
+  @override
+  List<Object?> get props => [articles];
+}
+
 class ArticlesSuccess extends ArticlesState {
   final List<Article> articles;
 
@@ -47,6 +56,9 @@ abstract class SealedArticlesStates<T> {
     }
     if (this is InitialArticlesState || this is ArticlesLoading) {
       return loading.call();
+    }
+    if (this is ArticlesRefreshing) {
+      return success.call((this as ArticlesRefreshing).articles);
     }
     throw new Exception('If you got here, there are probably no more states handled in SealedArticlesStates class');
   }
