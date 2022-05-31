@@ -46,6 +46,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      restorationScopeId: 'news-app',
       home: RepositoryProvider<ArticlesRepository>(
         create: (_) => ArticlesRepository(client: getIt.get<ApiClient>()),
         child: BlocProvider<ArticlesBloc>(
@@ -66,10 +67,12 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with RestorationMixin {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      restorationId: 'scaffold',
       appBar: AppBar(
         title: Text(widget.title),
       ),
@@ -83,6 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 return state.when(
                     success: (articles) {
                       return ListView.builder(
+                        restorationId: 'list',
                         itemCount: articles.length,
                         itemBuilder: (context, index) {
                           var article = articles[index];
@@ -91,13 +95,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             title: Text(article.title),
                             subtitle: Text("${article.createdAt} * ${article.author}"),
                             onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => ArticleScreen(
-                                    article: article,
-                                  ),
-                                ),
-                              );
+                              Navigator.restorablePush<Article>(context, buildMaterialPageRoute,
+                                  arguments:  article.toJson());
                             },
                           );
                         },
@@ -127,11 +126,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  static Route<Article> buildMaterialPageRoute(BuildContext context, Object? object) {
+    if (object != null && object is Map) {
+      return MaterialPageRoute(
+          builder: (_) => ArticleScreen(article: Article.fromJson((Map<String, dynamic>.from(object)))));
+    }
+    return MaterialPageRoute(builder: (_) => Container(color: Colors.black,));
+  }
+
   Future<void> _reloadArticles() async {
     var articlesBloc = context.read<ArticlesBloc>();
     articlesBloc.add(RefreshArticles());
     await articlesBloc.stream.firstWhere((element) => !(element is ArticlesRefreshing));
   }
+
+  @override
+  String? get restorationId => 'articles-list';
+
+  @override
+  void restoreState(RestorationBucket? oldBucket, bool initialRestore) {}
 }
 
 class ArticleScreen extends StatelessWidget {
