@@ -40,7 +40,6 @@ class ApiError {
               case 401:
               case 403:
                 return "Unauthorised request. Probably need to login?";
-                break;
               case 404:
                 return "We cannot found what you're looking for.";
               case 503:
@@ -51,5 +50,6 @@ class ApiError {
         }
       }
     }
+    return null;
   }
 }

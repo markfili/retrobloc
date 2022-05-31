@@ -1,7 +1,6 @@
 import 'dart:core';
 
 import 'package:dio/dio.dart';
-import 'package:injectable/injectable.dart';
 import 'package:retrobloc/models/article.dart';
 import 'package:retrobloc/network/api_client.dart';
 
