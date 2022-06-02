@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:retrobloc/network/api_client.dart';
 import 'package:retrobloc/network/repositories/articles/articles_repository.dart';
+import 'package:retrobloc/utils/datetime_formatter.dart';
 import 'package:retrobloc/utils/logging.dart';
 
 import 'blocs/articles/articles_bloc.dart';
@@ -41,17 +43,17 @@ class SimpleBlocObserver extends BlocObserver {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Network Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      restorationScopeId: 'news-app',
-      home: RepositoryProvider<ArticlesRepository>(
-        create: (_) => ArticlesRepository(client: getIt.get<ApiClient>()),
-        child: BlocProvider<ArticlesBloc>(
-          create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>()),
-          child: MyHomePage(title: 'Flutter Network Demo'),
+    return RepositoryProvider<ArticlesRepository>(
+      create: (_) => ArticlesRepository(client: getIt.get<ApiClient>()),
+      child: BlocProvider<ArticlesBloc>(
+        create: (context) => ArticlesBloc(repository: context.read<ArticlesRepository>()),
+        child: MaterialApp(
+          title: 'Flutter Network Demo',
+          theme: ThemeData(
+            primarySwatch: Colors.blue,
+          ),
+          restorationScopeId: 'news-app',
+          home: MyHomePage(title: '"Articles"🧭 🏳️\u200d🌈🧋🧉'),
         ),
       ),
     );
@@ -68,7 +70,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with RestorationMixin {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,14 +91,32 @@ class _MyHomePageState extends State<MyHomePage> with RestorationMixin {
                         itemCount: articles.length,
                         itemBuilder: (context, index) {
                           var article = articles[index];
-                          return ListTile(
-                            leading: CircleAvatar(foregroundImage: NetworkImage(article.image)),
-                            title: Text(article.title),
-                            subtitle: Text("${article.createdAt} * ${article.author}"),
-                            onTap: () {
-                              Navigator.restorablePush<Article>(context, buildMaterialPageRoute,
-                                  arguments:  article.toJson());
-                            },
+                          return Card(
+                            child: ListTile(
+                              leading: Hero(
+                                tag: "article-avatar-${article.id}",
+                                child: CircleAvatar(foregroundImage: CachedNetworkImageProvider(article.image)),
+                              ),
+                              title: Text(article.title),
+                              subtitle: Text(
+                                "${DateTimeFormatter.toHumanFormat(article.createdAt)} • ${article.author}",
+                                style: TextStyle(fontSize: 12),
+                              ),
+                              trailing: IconButton(splashRadius: 20,
+                                onPressed: () => context.read<ArticlesBloc>().add(
+                                      ArticleFavorited(article: article),
+                                    ),
+                                icon: Icon(
+                                  article.isFavorited ? Icons.favorite : Icons.favorite_border,
+                                  color: article.isFavorited ? Colors.red : Colors.blueGrey,
+                                ),
+                              ),
+                              onTap: () => Navigator.restorablePush<Article>(
+                                context,
+                                buildMaterialPageRoute,
+                                arguments: article.toJson(),
+                              ),
+                            ),
                           );
                         },
                       );
@@ -129,9 +148,18 @@ class _MyHomePageState extends State<MyHomePage> with RestorationMixin {
   static Route<Article> buildMaterialPageRoute(BuildContext context, Object? object) {
     if (object != null && object is Map) {
       return MaterialPageRoute(
-          builder: (_) => ArticleScreen(article: Article.fromJson((Map<String, dynamic>.from(object)))));
+        builder: (_) => ArticleScreen(
+          article: Article.fromJson(
+            (Map<String, dynamic>.from(object)),
+          ),
+        ),
+      );
     }
-    return MaterialPageRoute(builder: (_) => Container(color: Colors.black,));
+    return MaterialPageRoute(
+      builder: (_) => Container(
+        color: Colors.black,
+      ),
+    );
   }
 
   Future<void> _reloadArticles() async {
@@ -157,14 +185,31 @@ class ArticleScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(article.title),
+        actions: [
+          IconButton(
+            onPressed: () => context.read<ArticlesBloc>().add(ArticleFavorited(article: article)),
+            icon: Icon(
+                _isFavorited(article, context.watch<ArticlesBloc>().state) ? Icons.favorite : Icons.favorite_border),
+          ),
+        ],
       ),
       body: Column(
         children: [
-          Image.network(article.image),
+          Hero(
+            tag: "article-avatar-${article.id}",
+            child: Image.network(article.image),
+          ),
           Text(article.author),
           Text(article.createdAt),
         ],
       ),
     );
+  }
+
+  _isFavorited(Article article, ArticlesState state) {
+    if (state is ArticlesSuccess) {
+      article.favorite = state.isFavorited ?? article.isFavorited;
+    }
+    return article.isFavorited;
   }
 }

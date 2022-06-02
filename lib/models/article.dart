@@ -12,6 +12,7 @@ class Article extends Equatable {
   final String image;
   final String title;
   final String createdAt;
+  bool favorite;
 
   Article({
     required this.id,
@@ -19,6 +20,7 @@ class Article extends Equatable {
     required this.image,
     required this.title,
     required this.createdAt,
+    this.favorite = false,
   });
 
   factory Article.fromJson(Map<String, dynamic> json) => _$ArticleFromJson(json);
@@ -26,5 +28,11 @@ class Article extends Equatable {
   Map<String, dynamic> toJson() => _$ArticleToJson(this);
 
   @override
-  List<Object?> get props => [id, author, image, title, createdAt];
+  List<Object?> get props => [id, author, image, title, createdAt, favorite];
+
+  bool get isFavorited => favorite;
+
+  set favorited(bool isFavorited) {
+    this.favorite = isFavorited;
+  }
 }

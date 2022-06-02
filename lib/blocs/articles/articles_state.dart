@@ -23,11 +23,13 @@ class ArticlesRefreshing extends ArticlesState {
 
 class ArticlesSuccess extends ArticlesState {
   final List<Article> articles;
+  final String? favoritedArticleId;
+  final bool? isFavorited;
 
-  const ArticlesSuccess({required this.articles});
+  const ArticlesSuccess({required this.articles, this.favoritedArticleId, this.isFavorited});
 
   @override
-  List<Object?> get props => [articles];
+  List<Object?> get props => [articles, favoritedArticleId, isFavorited];
 }
 
 class ArticlesFailure extends ArticlesState {

@@ -27,9 +27,8 @@ class _ApiClient implements ApiClient {
                 .compose(_dio.options, '/articles',
                     queryParameters: queryParameters, data: _data)
                 .copyWith(baseUrl: baseUrl ?? _dio.options.baseUrl)));
-    var value = _result.data!
-        .map((dynamic i) => Article.fromJson(i as Map<String, dynamic>))
-        .toList();
+    var value = await compute(
+        deserializeArticleList, _result.data!.cast<Map<String, dynamic>>());
     return value;
   }
 

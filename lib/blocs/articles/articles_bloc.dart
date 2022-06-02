@@ -16,6 +16,7 @@ class ArticlesBloc extends HydratedBloc<ArticlesEvent, ArticlesState> {
   ArticlesBloc({required this.repository}) : super(InitialArticlesState()) {
     on<LoadArticles>(_mapLoadArticlesToState);
     on<RefreshArticles>(_mapRefreshArticlesToState);
+    on<ArticleFavorited>(_mapFavoritedArticleToState);
     if (state is InitialArticlesState) {
       add(LoadArticles());
     }
@@ -23,11 +24,9 @@ class ArticlesBloc extends HydratedBloc<ArticlesEvent, ArticlesState> {
 
   void _mapLoadArticlesToState(LoadArticles event, Emitter<ArticlesState> emit) async {
     try {
-      logger.i("Current state is $state");
       emit(ArticlesLoading());
-      var result = await repository.getArticles();
-      logger.i("Received ${result.data!.length} articles!");
-      emit(ArticlesSuccess(articles: result.data!));
+      var articles = await repository.getArticles();
+      emit(ArticlesSuccess(articles: articles));
     } on ApiError catch (e) {
       emit(ArticlesFailure(errorMessage: e.errorMessage));
     }
@@ -37,11 +36,23 @@ class ArticlesBloc extends HydratedBloc<ArticlesEvent, ArticlesState> {
     try {
       emit(ArticlesRefreshing(
           articles: (state is ArticlesSuccess) ? (state as ArticlesSuccess).articles : List.empty()));
-      var result = await repository.getArticles();
-      logger.i("Received ${result.data!.length} articles!");
-      emit(ArticlesSuccess(articles: result.data!));
+      var articles = await repository.getArticles();
+      emit(ArticlesSuccess(articles: articles));
     } on ApiError catch (_) {
       emit(state);
+    }
+  }
+
+  void _mapFavoritedArticleToState(ArticleFavorited event, Emitter<ArticlesState> emit) async {
+    if (state is ArticlesSuccess) {
+      var articles = (state as ArticlesSuccess).articles;
+      var article = repository.saveArticleFavoriteState(articles, event.article.id);
+      logger.i("Article ${event.article.id} favorited: ${article.isFavorited}");
+      emit(ArticlesSuccess(
+        articles: articles,
+        favoritedArticleId: article.id,
+        isFavorited: article.isFavorited,
+      ));
     }
   }
 

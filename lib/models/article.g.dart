@@ -12,6 +12,7 @@ Article _$ArticleFromJson(Map<String, dynamic> json) => Article(
       image: json['image'] as String,
       title: json['title'] as String,
       createdAt: json['createdAt'] as String,
+      favorite: json['favorite'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$ArticleToJson(Article instance) => <String, dynamic>{
@@ -20,4 +21,5 @@ Map<String, dynamic> _$ArticleToJson(Article instance) => <String, dynamic>{
       'image': instance.image,
       'title': instance.title,
       'createdAt': instance.createdAt,
+      'favorite': instance.favorite,
     };
